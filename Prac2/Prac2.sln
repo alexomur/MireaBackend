@@ -4,6 +4,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Drawer", "Drawer\Drawer.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utils", "Utils\Utils.csproj", "{330DAD68-AA60-4785-A21B-2CCF42B8B9C6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sorter", "Sorter\Sorter.csproj", "{726674B2-4A7D-4B61-AF3C-C035B8604889}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{330DAD68-AA60-4785-A21B-2CCF42B8B9C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{330DAD68-AA60-4785-A21B-2CCF42B8B9C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{330DAD68-AA60-4785-A21B-2CCF42B8B9C6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{726674B2-4A7D-4B61-AF3C-C035B8604889}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{726674B2-4A7D-4B61-AF3C-C035B8604889}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{726674B2-4A7D-4B61-AF3C-C035B8604889}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{726674B2-4A7D-4B61-AF3C-C035B8604889}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

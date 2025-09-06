@@ -44,6 +44,9 @@ h2{margin:28px 0 12px 0}
 </style>
 </head>
 <body>
+<h1>Drawer</h1>
+
+<h2>Примеры</h2>
 <div class="grid">
 """);
 
