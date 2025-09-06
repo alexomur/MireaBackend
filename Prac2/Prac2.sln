@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Drawer", "Drawer\Drawer.csproj", "{D17EE735-E069-4483-B033-81544329F9AF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utils", "Utils\Utils.csproj", "{330DAD68-AA60-4785-A21B-2CCF42B8B9C6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D17EE735-E069-4483-B033-81544329F9AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D17EE735-E069-4483-B033-81544329F9AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D17EE735-E069-4483-B033-81544329F9AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D17EE735-E069-4483-B033-81544329F9AF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{330DAD68-AA60-4785-A21B-2CCF42B8B9C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{330DAD68-AA60-4785-A21B-2CCF42B8B9C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{330DAD68-AA60-4785-A21B-2CCF42B8B9C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{330DAD68-AA60-4785-A21B-2CCF42B8B9C6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
