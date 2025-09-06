@@ -19,43 +19,50 @@ public class WebServer
 
     public async Task StartAsync(string url)
     {
-        Log.Info("\n===\nSTARTING WEBSERVER\n===");
-        if (!url.EndsWith('/'))
-        {
-            url += "/";
-            Log.Warn($"URL changed to: {url}");
-        }
-
-        HttpListener listener = new();
-        listener.Prefixes.Add(url);
-        listener.Start();
-        
-        Log.Info($"Server started at {url}");
-        Log.Info($"Root dir: {_wwwRoot}");
-
-        Console.CancelKeyPress += (sender, e) =>
-        {
-            e.Cancel = true;
-            Log.Info("Server shutting down");
-            listener.Stop();
-            Environment.Exit(0);
-        };
-
         try
         {
-            while (true)
+            Log.Info("\n===\nSTARTING WEBSERVER\n===");
+            if (!url.EndsWith('/'))
             {
-                HttpListenerContext context = await listener.GetContextAsync();
-                _ = Task.Run(() => ProcessRequest(context));
+                url += "/";
+                Log.Warn($"URL changed to: {url}");
+            }
+
+            HttpListener listener = new();
+            listener.Prefixes.Add(url);
+            listener.Start();
+
+            Log.Info($"Server started at {url}");
+            Log.Info($"Root dir: {_wwwRoot}");
+
+            Console.CancelKeyPress += (sender, e) =>
+            {
+                e.Cancel = true;
+                Log.Info("Server shutting down");
+                listener.Stop();
+                Environment.Exit(0);
+            };
+
+            try
+            {
+                while (true)
+                {
+                    HttpListenerContext context = await listener.GetContextAsync();
+                    _ = Task.Run(() => ProcessRequest(context));
+                }
+            }
+            catch (ObjectDisposedException)
+            {
+                Log.Info("Listener stopped");
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Server error: {ex.Message}");
             }
         }
-        catch (ObjectDisposedException)
+        catch (Exception e)
         {
-            Log.Info("Listener stopped");
-        }
-        catch (Exception ex)
-        {
-            Log.Error($"Server error: {ex.Message}");
+            Log.Error($"{e}\n{e.Message}");
         }
     }
 

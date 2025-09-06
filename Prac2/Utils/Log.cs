@@ -52,10 +52,12 @@ public static class Log
     {
         Raw($"[{Assembly.GetCallingAssembly().GetName().Name}] [INFO] {message}", ConsoleColor.Cyan);
     }
+    
     public static void Warn(string message)
     {
         Raw($"[{Assembly.GetCallingAssembly().GetName().Name}] [WARN] {message}", ConsoleColor.Yellow);
     }
+    
     public static void Error(string message)
     {
         Raw($"[{Assembly.GetCallingAssembly().GetName().Name}] [ERROR] {message}", ConsoleColor.Red);
