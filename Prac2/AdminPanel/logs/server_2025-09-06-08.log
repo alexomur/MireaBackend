@@ -1,0 +1,6 @@
+2025-09-06 20:00:26 [AdminPanel] [INFO] Server started at http://127.0.0.1:8080
+2025-09-06 20:00:30 [AdminPanel] [INFO] whoami exited 0 in 704ms
+2025-09-06 20:00:38 [AdminPanel] [INFO] Served admin home
+2025-09-06 20:00:45 [AdminPanel] [INFO] ls -la . exited 0 in 1323ms
+2025-09-06 20:00:49 [AdminPanel] [INFO] Served admin home
+2025-09-06 20:02:04 [AdminPanel] [INFO] pwd exited 0 in 892ms

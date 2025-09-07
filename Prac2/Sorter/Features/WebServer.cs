@@ -1,6 +1,4 @@
-﻿using System;
-using System.Globalization;
-using System.Linq;
+﻿using System.Globalization;
 using System.Net;
 using System.Text;
 using Utils;
@@ -9,6 +7,8 @@ namespace Sorter.Features;
 
 public class WebServer
 {
+    private readonly string _wwwRoot = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+
     public async Task StartAsync(string url)
     {
         try
@@ -16,6 +16,11 @@ public class WebServer
             if (!url.EndsWith('/'))
             {
                 url += "/";
+            }
+
+            if (!Directory.Exists(_wwwRoot))
+            {
+                Directory.CreateDirectory(_wwwRoot);
             }
 
             HttpListener listener = new HttpListener();
@@ -97,7 +102,7 @@ public class WebServer
             return;
         }
 
-        await Error(response, 404, "Not found");
+        await TryServeStatic(path, response);
     }
 
     private async Task HandleHome(HttpListenerRequest request, HttpListenerResponse response)
@@ -109,6 +114,7 @@ public class WebServer
         response.ContentType = "text/html; charset=utf-8";
         response.ContentLength64 = buffer.LongLength;
         await response.OutputStream.WriteAsync(buffer);
+        Log.Info("Served homepage");
     }
 
     private async Task HandleSort(HttpListenerRequest request, HttpListenerResponse response)
@@ -121,7 +127,7 @@ public class WebServer
         }
 
         string[] rawParts = src.Split(',', StringSplitOptions.RemoveEmptyEntries);
-        int[]? numbers = new int[rawParts.Length];
+        int[] numbers = new int[rawParts.Length];
         for (int i = 0; i < rawParts.Length; i++)
         {
             string piece = rawParts[i].Trim();
@@ -144,23 +150,59 @@ public class WebServer
         response.ContentType = "text/html; charset=utf-8";
         response.ContentLength64 = buffer.LongLength;
         await response.OutputStream.WriteAsync(buffer);
+        Log.Info("Sorted " + numbers.Length.ToString(CultureInfo.InvariantCulture) + " numbers");
+    }
+
+    private async Task TryServeStatic(string path, HttpListenerResponse response)
+    {
+        string filePath = Path.Combine(_wwwRoot, path.TrimStart('/'));
+        string full = Path.GetFullPath(filePath);
+
+        if (!full.StartsWith(_wwwRoot, StringComparison.OrdinalIgnoreCase))
+        {
+            await Error(response, 403, "Access denied");
+            return;
+        }
+
+        if (!File.Exists(full))
+        {
+            await Error(response, 404, "Not found");
+            return;
+        }
+
+        byte[] content = await File.ReadAllBytesAsync(full);
+        string mime = ContentTypes.GetMimeType(full);
+        response.ContentType = NeedsUtf8(mime) ? mime + "; charset=utf-8" : mime;
+        response.ContentLength64 = content.LongLength;
+        response.StatusCode = 200;
+        await response.OutputStream.WriteAsync(content);
+        Log.Info("Served file: " + full);
+    }
+
+    private static bool NeedsUtf8(string mime)
+    {
+        if (mime.StartsWith("text/", StringComparison.OrdinalIgnoreCase)) return true;
+        if (string.Equals(mime, "application/javascript", StringComparison.OrdinalIgnoreCase)) return true;
+        if (string.Equals(mime, "application/json", StringComparison.OrdinalIgnoreCase)) return true;
+        if (string.Equals(mime, "image/svg+xml", StringComparison.OrdinalIgnoreCase)) return true;
+        return false;
     }
 
     private async Task Error(HttpListenerResponse response, int statusCode, string message)
     {
         response.StatusCode = statusCode;
-        string errorHtml = $"""
-            <html>
-                <head><meta charset="utf-8"><title>Error {statusCode}</title></head>
-                <body style="font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;">
-                    <h1>Error {statusCode}</h1>
-                    <p>{message}</p>
-                </body>
-            </html>
-            """;
+        string errorHtml =
+            "<html>" +
+            "<head><meta charset=\"utf-8\"><title>Error " + statusCode + "</title></head>" +
+            "<body style=\"font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;\">" +
+            "<h1>Error " + statusCode + "</h1>" +
+            "<p>" + WebUtility.HtmlEncode(message) + "</p>" +
+            "</body>" +
+            "</html>";
         byte[] buffer = Encoding.UTF8.GetBytes(errorHtml);
         response.ContentType = "text/html; charset=utf-8";
         response.ContentLength64 = buffer.Length;
         await response.OutputStream.WriteAsync(buffer);
+        Log.Error(statusCode + ": " + message);
     }
 }
