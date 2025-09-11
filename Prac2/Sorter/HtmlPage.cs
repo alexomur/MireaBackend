@@ -9,7 +9,6 @@ public static class HtmlPage
     {
         string sample1 = baseUrl + "sort?array=5,1,9,2,7,3";
         string sample2 = baseUrl + "sort?array=10,9,8,7,6,5,4,3,2,1";
-
         StringBuilder sb = new StringBuilder();
         sb.Append("""
 <!doctype html>
@@ -40,15 +39,12 @@ h2{margin:20px 0 12px 0}
 <div class="controls">
 <input id="array" name="array" type="text" placeholder="5, 1, 9, 2, 7, 3" value="5, 1, 9, 2, 7, 3">
 """);
-
         sb.Append("<a class=\"btn\" href=\"");
         sb.Append(WebUtility.HtmlEncode(sample1));
         sb.Append("\">Пример 1</a>\n");
-
         sb.Append("<a class=\"btn\" href=\"");
         sb.Append(WebUtility.HtmlEncode(sample2));
         sb.Append("\">Пример 2</a>\n");
-
         sb.Append("""
 </div>
 <p><small>Передайте массив как строку с числами, разделёнными запятыми. Результат вернётся на странице <code>/sort</code>.</small></p>

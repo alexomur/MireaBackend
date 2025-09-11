@@ -1,0 +1,9 @@
+logs/
+bin/
+obj/
+*.user
+*.suo
+*.swp
+.vs/
+build/
+out-test/

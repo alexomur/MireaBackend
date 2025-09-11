@@ -1,11 +1,12 @@
-﻿namespace Sorter.Features;
+﻿using System;
+
+namespace Sorter.Features;
 
 public static class MergeSorter
 {
     public static int[] Sort(int[]? source)
     {
-        if (source == null) 
-            return Array.Empty<int>();
+        if (source == null) return Array.Empty<int>();
         int n = source.Length;
         if (n <= 1) return source.AsSpan().ToArray();
         int[] buffer = new int[n];
@@ -25,22 +26,14 @@ public static class MergeSorter
                 int k = left;
                 while (p < mid && q < right)
                 {
-                    if (a[p] <= a[q])
-                    {
-                        b[k++] = a[p++];
-                    }
-                    else
-                    {
-                        b[k++] = a[q++];
-                    }
+                    if (a[p] <= a[q]) b[k++] = a[p++];
+                    else b[k++] = a[q++];
                 }
                 while (p < mid) b[k++] = a[p++];
                 while (q < right) b[k++] = a[q++];
                 i += 2 * width;
             }
-            int[] tmp = a;
-            a = b;
-            b = tmp;
+            (a, b) = (b, a);
             width *= 2;
         }
         return a;

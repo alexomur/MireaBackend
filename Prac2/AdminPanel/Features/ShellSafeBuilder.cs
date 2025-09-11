@@ -11,13 +11,8 @@ public static class ShellSafeBuilder
         "whoami","id","uname","uptime","df","free","ps","env","pwd","hostname","ls","cat","head","tail"
     };
 
-    private static readonly HashSet<string> WinAllowed = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-    {
-        "whoami","hostname","dir","type","Get-Process","Get-ChildItem","Get-Location","Get-ChildItemEnv","systeminfo","uptime","drives","memory"
-    };
-
-    private static readonly Regex SafeArgUnix = new Regex(@"^[A-Za-z0-9_\-./~@:+=,\s]{1,2048}$");
-    private static readonly Regex SafeArgWin = new Regex(@"^[A-Za-z0-9_\-./~\\:@+=,\s]{1,2048}$");
+    private static readonly Regex SafeArgUnix = new Regex("^[A-Za-z0-9_\\-./~@:+=,\\s]{1,2048}$");
+    private static readonly Regex SafeArgWin = new Regex("^[A-Za-z0-9_\\-./~\\\\:@+=,\\s]{1,2048}$");
     private static readonly char[] Ws = new[] { ' ', '\t', '\r', '\n' };
 
     public static ShellBuildResult TryBuild(string input)
@@ -37,14 +32,14 @@ public static class ShellSafeBuilder
             if (string.Equals(cmd, "dir", StringComparison.OrdinalIgnoreCase) || string.Equals(cmd, "ls", StringComparison.OrdinalIgnoreCase))
             {
                 string path = string.IsNullOrWhiteSpace(rest) ? "." : rest.Trim();
-                string ps = "Get-ChildItem -Force -LiteralPath " + PwshQuote(path) + " | Format-Table -AutoSize";
+                string ps = "Get-ChildItem -Force -LiteralPath " + ShellQuotes.PwshQuote(path) + " | Format-Table -AutoSize";
                 return Ok("ls -la " + path, ps, "ls");
             }
             if (string.Equals(cmd, "type", StringComparison.OrdinalIgnoreCase) || string.Equals(cmd, "cat", StringComparison.OrdinalIgnoreCase))
             {
                 string path = rest.Trim();
                 if (string.IsNullOrWhiteSpace(path)) return ShellBuildResult.Fail("Missing arg", "Нужен путь к файлу");
-                string ps = "Get-Content -LiteralPath " + PwshQuote(path) + " -TotalCount 1000";
+                string ps = "Get-Content -LiteralPath " + ShellQuotes.PwshQuote(path) + " -TotalCount 1000";
                 return Ok("cat " + path, ps, "cat");
             }
             if (string.Equals(cmd, "ps", StringComparison.OrdinalIgnoreCase)) return Ok("processes", "Get-Process | Sort-Object CPU -Descending | Select-Object -First 200 | Format-Table -AutoSize", "ps");
@@ -62,28 +57,28 @@ public static class ShellSafeBuilder
             if (string.Equals(cmd, "ls", StringComparison.OrdinalIgnoreCase))
             {
                 string path = string.IsNullOrWhiteSpace(rest) ? "." : rest.Trim();
-                string sh = "ls -la -- " + BashQuote(path);
+                string sh = "ls -la -- " + ShellQuotes.BashQuote(path);
                 return Ok("ls -la " + path, sh, "ls");
             }
             if (string.Equals(cmd, "cat", StringComparison.OrdinalIgnoreCase))
             {
                 string path = rest.Trim();
                 if (string.IsNullOrWhiteSpace(path)) return ShellBuildResult.Fail("Missing arg", "Нужен путь к файлу");
-                string sh = "head -c 200000 -- " + BashQuote(path);
+                string sh = "head -c 200000 -- " + ShellQuotes.BashQuote(path);
                 return Ok("cat " + path, sh, "cat");
             }
             if (string.Equals(cmd, "head", StringComparison.OrdinalIgnoreCase))
             {
                 string path = rest.Trim();
                 if (string.IsNullOrWhiteSpace(path)) return ShellBuildResult.Fail("Missing arg", "Нужен путь к файлу");
-                string sh = "head -n 200 -- " + BashQuote(path);
+                string sh = "head -n 200 -- " + ShellQuotes.BashQuote(path);
                 return Ok("head " + path, sh, "head");
             }
             if (string.Equals(cmd, "tail", StringComparison.OrdinalIgnoreCase))
             {
                 string path = rest.Trim();
                 if (string.IsNullOrWhiteSpace(path)) return ShellBuildResult.Fail("Missing arg", "Нужен путь к файлу");
-                string sh = "tail -n 200 -- " + BashQuote(path);
+                string sh = "tail -n 200 -- " + ShellQuotes.BashQuote(path);
                 return Ok("tail " + path, sh, "tail");
             }
             if (string.Equals(cmd, "ps", StringComparison.OrdinalIgnoreCase)) return Ok("ps aux", "ps aux", "ps");
@@ -112,18 +107,6 @@ public static class ShellSafeBuilder
         string head = s.Substring(0, i);
         string tail = s.Substring(i).Trim();
         return new[] { head, tail };
-    }
-
-    private static string BashQuote(string s)
-    {
-        string t = s.Replace("'", "'\"'\"'");
-        return "'" + t + "'";
-    }
-
-    private static string PwshQuote(string s)
-    {
-        string t = s.Replace("'", "''");
-        return "'" + t + "'";
     }
 }
 

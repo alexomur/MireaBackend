@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Buffers.Text;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -7,31 +6,38 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
-using AdminPanel.Pages;
 using Utils;
 
 namespace AdminPanel.Features;
 
-public class WebServer
+public class WebServer(int defaultPort = 8082)
 {
+    private readonly int _defaultPort = defaultPort;
+    private TcpListener? _listener;
+    public int Port { get; private set; }
+
     public async Task StartAsync(string url)
     {
-        int port = 8080;
+        int port = _defaultPort;
         try
         {
             Uri u = new Uri(url);
             if (u.Port > 0) port = u.Port;
         }
-        catch { }
+        catch
+        {
+        }
+        Port = port;
         TcpListener listener = new TcpListener(IPAddress.Any, port);
+        _listener = listener;
         listener.Start();
-        Log.Info("Server started at " + url);
+        Log.Info($"Server started at {url}");
         Console.CancelKeyPress += (sender, e) =>
         {
             e.Cancel = true;
-            try { listener.Stop(); } catch { }
-            Environment.Exit(0);
+            TryStop();
         };
+        AppDomain.CurrentDomain.ProcessExit += (sender, e) => TryStop();
         try
         {
             while (true)
@@ -50,26 +56,38 @@ public class WebServer
         }
     }
 
+    private void TryStop()
+    {
+        try
+        {
+            _listener?.Stop();
+        }
+        catch
+        {
+        }
+    }
+
     private async Task HandleClient(TcpClient client)
     {
         using (client)
         {
             NetworkStream stream = client.GetStream();
-            StreamReader reader = new StreamReader(stream, Encoding.ASCII, false, 8192, true);
+            StreamReader reader = new StreamReader(stream, Encoding.UTF8, false, 8192, true);
             StreamWriter writer = new StreamWriter(stream, new UTF8Encoding(false), 8192, true);
             writer.NewLine = "\r\n";
             try
             {
                 string requestLine = await reader.ReadLineAsync() ?? "";
                 if (requestLine.Length == 0) return;
-                string method;
-                string rawTarget;
-                string httpVersion;
                 string[] parts = requestLine.Split(' ');
-                if (parts.Length < 3) { await WriteError(writer, 400, "Bad Request"); return; }
-                method = parts[0];
-                rawTarget = parts[1];
-                httpVersion = parts[2];
+                if (parts.Length < 3)
+                {
+                    await WriteError(writer, 400, "Bad Request");
+                    return;
+                }
+                string method = parts[0];
+                string rawTarget = parts[1];
+                string httpVersion = parts[2];
                 Dictionary<string, string> headers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
                 while (true)
                 {
@@ -83,8 +101,8 @@ public class WebServer
                         headers[name] = value;
                     }
                 }
-                string host = headers.ContainsKey("Host") ? headers["Host"] : "localhost:" + "8080";
-                string baseUrl = "http://" + host + "/";
+                string host = headers.ContainsKey("Host") ? headers["Host"] : $"localhost:{Port}";
+                string baseUrl = $"http://{host}/";
                 string path;
                 string query;
                 int qpos = rawTarget.IndexOf('?');
@@ -129,7 +147,7 @@ public class WebServer
                     CommandResult result = await CommandRunner.RunShell(spec.Command);
                     string html = HtmlPage.BuildResult(spec.Title, spec.Command, result.StdOut, result.StdErr, result.ExitCode, result.ElapsedMilliseconds);
                     await WriteHtml(writer, 200, html);
-                    string msg = spec.Title + " exited " + result.ExitCode.ToString(CultureInfo.InvariantCulture) + " in " + result.ElapsedMilliseconds.ToString(CultureInfo.InvariantCulture) + "ms";
+                    string msg = $"{spec.Title} exited {result.ExitCode.ToString(CultureInfo.InvariantCulture)} in {result.ElapsedMilliseconds.ToString(CultureInfo.InvariantCulture)}ms";
                     Log.Info(msg);
                     return;
                 }
@@ -146,7 +164,8 @@ public class WebServer
                     }
                     string envToken = Environment.GetEnvironmentVariable("ADMINPANEL_TOKEN") ?? "";
                     IPEndPoint? rep = client.Client.RemoteEndPoint as IPEndPoint;
-                    bool isLoopback = rep != null && IPAddress.IsLoopback(rep.Address);
+                    IPAddress? addr = rep != null ? rep.Address : null;
+                    bool isLoopback = addr != null && IPAddress.IsLoopback(addr);
                     if (!string.IsNullOrEmpty(envToken))
                     {
                         if (string.IsNullOrEmpty(token) || !string.Equals(token, envToken, StringComparison.Ordinal))
@@ -166,21 +185,27 @@ public class WebServer
                     ShellBuildResult build = ShellSafeBuilder.TryBuild(q);
                     if (!build.Ok)
                     {
-                        string bad = HtmlPage.BuildShell(baseUrl, q, "", "", "Rejected: " + build.Error, -1, 0, build.Hint);
+                        string bad = HtmlPage.BuildShell(baseUrl, q, "", "", $"Rejected: {build.Error}", -1, 0, build.Hint);
                         await WriteHtml(writer, 400, bad);
                         return;
                     }
                     CommandResult result = await CommandRunner.RunShell(build.Command);
                     string page = HtmlPage.BuildShell(baseUrl, q, build.Title, build.Command, result.StdErr, result.ExitCode, result.ElapsedMilliseconds, result.StdOut);
                     await WriteHtml(writer, 200, page);
-                    Log.Info("Shell: \"" + q + "\" -> " + build.Command);
+                    Log.Info($"Shell: \"{q}\" -> {build.Command}");
                     return;
                 }
                 await WriteError(writer, 404, "Not Found");
             }
             catch (Exception e)
             {
-                try { await WriteError(writer, 500, e.Message); } catch { }
+                try
+                {
+                    await WriteError(writer, 500, e.Message);
+                }
+                catch
+                {
+                }
                 Log.Error(e.Message);
             }
         }
@@ -214,11 +239,11 @@ public class WebServer
     {
         byte[] bytes = Encoding.UTF8.GetBytes(html);
         string statusText = GetStatusText(status);
-        await writer.WriteLineAsync("HTTP/1.1 " + status.ToString(CultureInfo.InvariantCulture) + " " + statusText);
+        await writer.WriteLineAsync($"HTTP/1.1 {status.ToString(CultureInfo.InvariantCulture)} {statusText}");
         await writer.WriteLineAsync("Content-Type: text/html; charset=utf-8");
-        await writer.WriteLineAsync("Content-Length: " + bytes.Length.ToString(CultureInfo.InvariantCulture));
+        await writer.WriteLineAsync($"Content-Length: {bytes.Length.ToString(CultureInfo.InvariantCulture)}");
         await writer.WriteLineAsync("Connection: close");
-        await writer.WriteLineAsync("Date: " + DateTime.UtcNow.ToString("R", CultureInfo.InvariantCulture));
+        await writer.WriteLineAsync($"Date: {DateTime.UtcNow.ToString("R", CultureInfo.InvariantCulture)}");
         await writer.WriteLineAsync("Server: AdminPanel-Tcp");
         await writer.WriteLineAsync();
         await writer.FlushAsync();
@@ -228,18 +253,21 @@ public class WebServer
 
     private static async Task WriteError(StreamWriter writer, int status, string message)
     {
-        string body = "<html><head><meta charset=\"utf-8\"><title>Error " + status.ToString(CultureInfo.InvariantCulture) + "</title></head><body style=\"font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;\"><h1>Error " + status.ToString(CultureInfo.InvariantCulture) + "</h1><p>" + WebUtility.HtmlEncode(message) + "</p></body></html>";
+        string body = $"<html><head><meta charset=\"utf-8\"><title>Error {status.ToString(CultureInfo.InvariantCulture)}</title></head><body style=\"font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;\"><h1>Error {status.ToString(CultureInfo.InvariantCulture)}</h1><p>{WebUtility.HtmlEncode(message)}</p></body></html>";
         await WriteHtml(writer, status, body);
     }
 
     private static string GetStatusText(int status)
     {
-        if (status == 200) return "OK";
-        if (status == 400) return "Bad Request";
-        if (status == 403) return "Forbidden";
-        if (status == 404) return "Not Found";
-        if (status == 405) return "Method Not Allowed";
-        if (status == 500) return "Internal Server Error";
-        return "Status";
+        return status switch
+        {
+            200 => "OK",
+            400 => "Bad Request",
+            403 => "Forbidden",
+            404 => "Not Found",
+            405 => "Method Not Allowed",
+            500 => "Internal Server Error",
+            _ => "Status"
+        };
     }
 }

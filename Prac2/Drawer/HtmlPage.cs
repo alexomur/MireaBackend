@@ -5,13 +5,14 @@ namespace Drawer;
 
 public static class HtmlPage
 {
+    private const string Styles = ":root{--gap:18px;--radius:14px;--border:#e5e7eb;--muted:#6b7280}*{box-sizing:border-box}body{font-family:system-ui,-apple-system,\"Segoe UI\",Roboto,Arial,sans-serif;line-height:1.5;margin:24px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:var(--gap)}.card{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:#fff;display:flex;flex-direction:column}.preview{display:flex;align-items:center;justify-content:center;background:#fafafa;padding:12px;border-bottom:1px solid var(--border);min-height:220px}.preview img{max-width:100%;max-height:260px;display:block}.card-body{padding:14px;display:flex;flex-direction:column;gap:10px}.title{font-weight:600}.params{color:var(--muted);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px}.controls{display:flex;gap:10px;align-items:center}.btn{appearance:none;border:1px solid var(--border);background:#f8fafc;padding:8px 12px;border-radius:10px;text-decoration:none;color:inherit;display:inline-flex;align-items:center;justify-content:center}.url{flex:1;min-width:120px;border:1px solid var(--border);border-radius:10px;padding:8px 10px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.form{border:1px solid var(--border);border-radius:var(--radius);padding:16px}.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:12px}label{display:flex;flex-direction:column;gap:6px}input,select{font:inherit;padding:8px 10px;border:1px solid var(--border);border-radius:10px}.small{color:var(--muted);font-size:13px}h1{margin:0 0 10px 0}h2{margin:28px 0 12px 0}";
+
     public static string BuildHome(string baseUrl)
     {
         string l1 = baseUrl + "drawer?shape=1&color=1&width=200&height=200&stroke=2&padding=0";
         string l2 = baseUrl + "drawer?shape=2&color=4&width=240&height=160&stroke=3&padding=2";
         string l3 = baseUrl + "drawer?shape=3&color=8&width=220&height=220&stroke=2&padding=0";
         string l4 = baseUrl + "drawer?shape=4&color=2&width=260&height=200&stroke=2&padding=3";
-
         StringBuilder sb = new StringBuilder();
         sb.Append("""
 <!doctype html>
@@ -21,26 +22,9 @@ public static class HtmlPage
 <title>Drawer — простые SVG фигуры</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-:root{--gap:18px;--radius:14px;--border:#e5e7eb;--muted:#6b7280}
-*{box-sizing:border-box}
-body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;line-height:1.5;margin:24px}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:var(--gap)}
-.card{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:#fff;display:flex;flex-direction:column}
-.preview{display:flex;align-items:center;justify-content:center;background:#fafafa;padding:12px;border-bottom:1px solid var(--border);min-height:220px}
-.preview img{max-width:100%;max-height:260px;display:block}
-.card-body{padding:14px;display:flex;flex-direction:column;gap:10px}
-.title{font-weight:600}
-.params{color:var(--muted);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px}
-.controls{display:flex;gap:10px;align-items:center}
-.btn{appearance:none;border:1px solid var(--border);background:#f8fafc;padding:8px 12px;border-radius:10px;text-decoration:none;color:inherit;display:inline-flex;align-items:center;justify-content:center}
-.url{flex:1;min-width:120px;border:1px solid var(--border);border-radius:10px;padding:8px 10px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.form{border:1px solid var(--border);border-radius:var(--radius);padding:16px}
-.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:12px}
-label{display:flex;flex-direction:column;gap:6px}
-input,select{font:inherit;padding:8px 10px;border:1px solid var(--border);border-radius:10px}
-.small{color:var(--muted);font-size:13px}
-h1{margin:0 0 10px 0}
-h2{margin:28px 0 12px 0}
+""");
+        sb.Append(Styles);
+        sb.Append("""
 </style>
 </head>
 <body>
@@ -49,12 +33,10 @@ h2{margin:28px 0 12px 0}
 <h2>Примеры</h2>
 <div class="grid">
 """);
-
         sb.Append(Card("Круг 200×200", l1));
         sb.Append(Card("Прямоугольник 240×160", l2));
         sb.Append(Card("Треугольник 220×220", l3));
         sb.Append(Card("Звезда 260×200", l4));
-
         sb.Append("""
 </div>
 

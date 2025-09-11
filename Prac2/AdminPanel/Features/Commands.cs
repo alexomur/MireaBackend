@@ -1,17 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 namespace AdminPanel.Features;
 
 public static class Commands
 {
-    private static readonly HashSet<string> Keys = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+    private static readonly System.Collections.Generic.HashSet<string> Keys = new System.Collections.Generic.HashSet<string>(System.StringComparer.OrdinalIgnoreCase)
     {
         "whoami","id","uname","uptime","df","free","ps","ls","env","pwd","hostname"
     };
 
-    public static IEnumerable<string> AllowedKeys => Keys;
+    public static System.Collections.Generic.IEnumerable<string> AllowedKeys => Keys;
 
     public static bool IsAllowed(string key)
     {
@@ -37,13 +36,13 @@ public static class Commands
             if (string.IsNullOrWhiteSpace(safe)) safe = ".";
             if (isWindows)
             {
-                string cmdW = "Get-ChildItem -Force -LiteralPath " + PwshQuote(safe) + " | Format-Table -AutoSize";
+                string cmdW = "Get-ChildItem -Force -LiteralPath " + ShellQuotes.PwshQuote(safe) + " | Format-Table -AutoSize";
                 string titleW = "ls -la " + safe;
                 return new CommandSpec(titleW, cmdW);
             }
             else
             {
-                string cmd = "ls -la -- " + BashQuote(safe);
+                string cmd = "ls -la -- " + ShellQuotes.BashQuote(safe);
                 string title = "ls -la " + safe;
                 return new CommandSpec(title, cmd);
             }
@@ -55,21 +54,9 @@ public static class Commands
     {
         if (input == null) return "";
         string s = input.Trim();
-        Regex r = isWindows ? new Regex(@"^[A-Za-z0-9_\-./~ \\:]{1,4096}$") : new Regex(@"^[A-Za-z0-9_\-./~ ]{1,4096}$");
+        Regex r = isWindows ? new Regex("^[A-Za-z0-9_\\-./~ \\\\:]{1,4096}$") : new Regex("^[A-Za-z0-9_\\-./~ ]{1,4096}$");
         if (!r.IsMatch(s)) return "";
         return s;
-    }
-
-    private static string BashQuote(string s)
-    {
-        string t = s.Replace("'", "'\"'\"'");
-        return "'" + t + "'";
-    }
-
-    private static string PwshQuote(string s)
-    {
-        string t = s.Replace("'", "''");
-        return "'" + t + "'";
     }
 }
 

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 
-namespace AdminPanel.Pages;
+namespace AdminPanel;
 
 public static class HtmlPage
 {
