@@ -36,11 +36,11 @@ public static class HtmlPage
         sb.Append("</div>\n<h2>ls по пути</h2>\n<div class=\"card\">\n<form action=\"exec\" method=\"get\">\n");
         sb.Append("<input type=\"hidden\" name=\"key\" value=\"ls\">\n<label>Путь <input type=\"text\" name=\"path\" placeholder=\".\" value=\".\"></label>\n<button class=\"btn\" type=\"submit\">Выполнить</button>\n</form>\n");
         sb.Append("<p><small>Путь фильтруется по допустимым символам: A–Z a–z 0–9 _ - . / ~ и пробел.</small></p>\n</div>\n");
-        sb.Append("<h2>Псевдо-shell</h2>\n<div class=\"card\">\n<form action=\"shell\" method=\"get\">\n");
+        sb.Append("<h2>Псевдо-SSH</h2>\n<div class=\"card\">\n<form action=\"SSH\" method=\"get\">\n");
         sb.Append("<label>Команда <input type=\"text\" name=\"q\" placeholder=\"ls .\"></label>\n");
         sb.Append("<label>Token <input type=\"text\" name=\"token\" placeholder=\"если задан ADMINPANEL_TOKEN\"></label>\n");
         sb.Append("<button class=\"btn\" type=\"submit\">Выполнить</button>\n</form>\n");
-        sb.Append("<p><small>Разрешён ограниченный набор команд. На Windows используется PowerShell-эквивалент.</small></p>\n</div>\n");
+        sb.Append("<p><small>Разрешён ограниченный набор команд. На Windows используется PowerSSH-эквивалент.</small></p>\n</div>\n");
         sb.Append("</body>\n</html>\n");
         return sb.ToString();
     }
@@ -66,13 +66,13 @@ public static class HtmlPage
     public static string BuildShell(string baseUrl, string q, string title, string command, string stderr, int exitCode, long elapsedMs, string stdout)
     {
         StringBuilder sb = new StringBuilder();
-        sb.Append("<!doctype html>\n<html lang=\"ru\">\n<head>\n<meta charset=\"utf-8\">\n<title>Shell</title>\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<style>\n");
+        sb.Append("<!doctype html>\n<html lang=\"ru\">\n<head>\n<meta charset=\"utf-8\">\n<title>SSH</title>\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<style>\n");
         sb.Append(":root{--radius:14px;--border:#e5e7eb;--muted:#6b7280}\n*{box-sizing:border-box}\nbody{font-family:system-ui,-apple-system,\"Segoe UI\",Roboto,Arial,sans-serif;margin:24px;line-height:1.5}\n");
         sb.Append(".card{border:1px solid var(--border);border-radius:var(--radius);padding:16px;background:#fff}\npre{white-space:pre-wrap;margin:0;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}\n");
         sb.Append(".row{display:grid;grid-template-columns:1fr;gap:12px}\n");
         sb.Append(".btn{appearance:none;border:1px solid var(--border);background:#f8fafc;padding:8px 12px;border-radius:10px;text-decoration:none;color:inherit;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}\n");
         sb.Append("label{display:flex;gap:8px;align-items:center}\ninput{font:inherit;border:1px solid var(--border);border-radius:10px;padding:8px 10px}\n");
-        sb.Append("</style>\n</head>\n<body>\n<h1>Псевдо-shell</h1>\n<div class=\"card\">\n<form action=\"/shell\" method=\"get\">\n");
+        sb.Append("</style>\n</head>\n<body>\n<h1>Псевдо-SSH</h1>\n<div class=\"card\">\n<form action=\"/SSH\" method=\"get\">\n");
         sb.Append("<label>Команда <input type=\"text\" name=\"q\" value=\"" + WebUtility.HtmlEncode(q ?? "") + "\" placeholder=\"ls .\"></label>\n");
         sb.Append("<label>Token <input type=\"text\" name=\"token\" placeholder=\"если задан ADMINPANEL_TOKEN\"></label>\n");
         sb.Append("<button class=\"btn\" type=\"submit\">Выполнить</button> <a class=\"btn\" href=\"/\">На главную</a>\n</form>\n</div>\n");

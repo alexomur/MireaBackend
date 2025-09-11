@@ -6,7 +6,7 @@ services:
       target: adminpanel
     environment:
       - ADMINPANEL_URL=http://0.0.0.0:8082/
-      - ADMINPANEL_TOKEN=changeme
+      - ADMINPANEL_TOKEN=12345
     ports:
       - "8082:8082"
     volumes:

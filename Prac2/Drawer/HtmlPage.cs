@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Text;
+using Drawer.Enums;
 
 namespace Drawer;
 
@@ -13,6 +14,21 @@ public static class HtmlPage
         string l2 = baseUrl + "drawer?shape=2&color=4&width=240&height=160&stroke=3&padding=2";
         string l3 = baseUrl + "drawer?shape=3&color=8&width=220&height=220&stroke=2&padding=0";
         string l4 = baseUrl + "drawer?shape=4&color=2&width=260&height=200&stroke=2&padding=3";
+
+        StringBuilder colorOptions = new StringBuilder();
+        ColorType[] values = System.Enum.GetValues<ColorType>();
+        for (int i = 0; i < values.Length; i++)
+        {
+            ColorType ct = values[i];
+            int val = (int)ct;
+            string name = WebUtility.HtmlEncode(ct.ToRussianName());
+            colorOptions.Append("<option value=\"");
+            colorOptions.Append(val.ToString());
+            colorOptions.Append("\">");
+            colorOptions.Append(name);
+            colorOptions.Append("</option>");
+        }
+
         StringBuilder sb = new StringBuilder();
         sb.Append("""
 <!doctype html>
@@ -54,10 +70,9 @@ public static class HtmlPage
 </label>
 <label>Цвет
 <select id="color" name="color">
-<option>0</option><option>1</option><option>2</option><option>3</option>
-<option>4</option><option>5</option><option>6</option><option>7</option>
-<option>8</option><option>9</option><option>10</option><option>11</option>
-<option>12</option><option>13</option><option>14</option><option>15</option>
+""");
+        sb.Append(colorOptions.ToString());
+        sb.Append("""
 </select>
 </label>
 <label>Ширина(px) <input id="w" name="width" type="number" min="1" max="2000" value="220"></label>
@@ -70,7 +85,7 @@ public static class HtmlPage
 <a id="open" class="btn" href="#" target="_blank" rel="noopener">Открыть</a>
 <button class="btn" type="button" onclick="copyResult()">Копировать</button>
 </div>
-<p class="small">Параметры: shape 1–4, color 0–15, width/height &gt; 0, stroke ≥ 0, padding 0–30.</p>
+<p class="small">Параметры: shape 1–4, color 0–15, width/height > 0, stroke ≥ 0, padding 0–30.</p>
 </form>
 <div class="preview" style="margin-top:12px"><img id="preview" alt="Превью"></div>
 </div>

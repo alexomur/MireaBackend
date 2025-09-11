@@ -6,34 +6,16 @@ namespace Drawer.Features;
 
 public static class SvgRenderer
 {
-    private static readonly string[] Palette =
-    [
-        "#000000",
-        "#ff0000",
-        "#00aa00",
-        "#0066ff",
-        "#ffcc00",
-        "#ff00aa",
-        "#00cccc",
-        "#ff6600",
-        "#7a3fff",
-        "#ff66cc",
-        "#8b4513",
-        "#008080",
-        "#001f3f",
-        "#808000",
-        "#808080",
-        "#c0c0c0"
-    ];
-
     public static string Render(ShapeType shape, int colorId, int w, int h, int stroke, int pad)
     {
-        int idx = Math.Clamp(colorId, 0, Palette.Length - 1);
+        int maxIndex = Enum.GetValues<ColorType>().Length - 1;
+        int idx = Math.Clamp(colorId, 0, maxIndex);
+        ColorType ct = (ColorType)idx;
+        string color = ct.ToHex();
         double padX = w * Math.Clamp(pad, 0, 30) / 100.0;
         double padY = h * Math.Clamp(pad, 0, 30) / 100.0;
         double innerW = Math.Max(0, w - 2 * padX);
         double innerH = Math.Max(0, h - 2 * padY);
-        string color = Palette[idx];
         string strokeAttr = stroke > 0 ? $" stroke=\"{color}\" stroke-width=\"{stroke.ToString(CultureInfo.InvariantCulture)}\"" : "";
         string open = $"<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{w}\" height=\"{h}\" viewBox=\"0 0 {w} {h}\">";
         if (shape == ShapeType.Circle)
@@ -80,7 +62,7 @@ public static class SvgRenderer
 
     private static string BuildStar(double cx, double cy, double R, double r, int n)
     {
-        StringBuilder b = new();
+        StringBuilder b = new StringBuilder();
         double rot = -Math.PI / 2.0;
         double step = Math.PI / n;
         for (int i = 0; i < n; i++)
