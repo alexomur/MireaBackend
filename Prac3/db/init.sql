@@ -1,3 +1,5 @@
+create extension if not exists pgcrypto;
+
 create table if not exists users (
                                      id serial primary key,
                                      username text unique not null,
@@ -18,10 +20,9 @@ create table if not exists orders (
     created_at timestamptz not null default now()
     );
 
--------------
-
 insert into users (username, password) values
-    ('admin', 'admin123') on conflict (username) do nothing;
+    ('admin', 'admin123')
+    on conflict (username) do update set password = excluded.password;
 
 insert into coffee (name, price_cents) values
                                            ('Эспрессо', 150),

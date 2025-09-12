@@ -141,10 +141,10 @@ try
             }
         }
     }
-    else if (method == "GET" && string.Equals(pathInfo, "/admin/orders", StringComparison.OrdinalIgnoreCase))
+    else if (method == "GET" && string.Equals(pathInfo, "/orders", StringComparison.OrdinalIgnoreCase))
     {
         using (NpgsqlConnection db = await OpenDbAsync())
-        using (NpgsqlCommand cmd = new NpgsqlCommand("select o.id, o.customer_name, c.name, o.qty, o.created_at from orders o join coffee c on c.id = o.coffee_id order by o.created_at desc limit 50", db))
+        using (NpgsqlCommand cmd = new("select o.id, o.customer_name, c.name, o.qty, o.created_at from orders o join coffee c on c.id = o.coffee_id order by o.created_at desc limit 50", db))
         using (NpgsqlDataReader rd = await cmd.ExecuteReaderAsync())
         {
             StringBuilder sb = new StringBuilder();
@@ -168,6 +168,7 @@ try
                 sb.Append(ts.ToString("yyyy-MM-dd HH:mm"));
                 sb.Append("</td></tr>");
             }
+            sb.ToString().Where()
             sb.Append("</table>");
             WriteHeader();
             Console.Write(Html("Админ: последние заказы", sb.ToString()));
