@@ -12,13 +12,12 @@ namespace AdminPanel.Features;
 
 public class WebServer(int defaultPort = 8082)
 {
-    private readonly int _defaultPort = defaultPort;
     private TcpListener? _listener;
     public int Port { get; private set; }
 
     public async Task StartAsync(string url)
     {
-        int port = _defaultPort;
+        int port = defaultPort;
         try
         {
             Uri u = new Uri(url);
@@ -28,7 +27,7 @@ public class WebServer(int defaultPort = 8082)
         {
         }
         Port = port;
-        TcpListener listener = new TcpListener(IPAddress.Any, port);
+        TcpListener listener = new(IPAddress.Any, port);
         _listener = listener;
         listener.Start();
         Log.Info($"Server started at {url}");
@@ -101,7 +100,7 @@ public class WebServer(int defaultPort = 8082)
                         headers[name] = value;
                     }
                 }
-                string host = headers.ContainsKey("Host") ? headers["Host"] : $"localhost:{Port}";
+                string host = headers.TryGetValue("Host", out string? header) ? header : $"localhost:{Port}";
                 string baseUrl = $"http://{host}/";
                 string path;
                 string query;
@@ -131,8 +130,8 @@ public class WebServer(int defaultPort = 8082)
                 if (string.Equals(path, "/exec", StringComparison.OrdinalIgnoreCase))
                 {
                     Dictionary<string, string> qs = ParseQuery(query);
-                    string key = qs.ContainsKey("key") ? qs["key"] : "";
-                    string pathArg = qs.ContainsKey("path") ? qs["path"] : "";
+                    string key = qs.GetValueOrDefault("key", "");
+                    string pathArg = qs.GetValueOrDefault("path", "");
                     if (string.IsNullOrWhiteSpace(key))
                     {
                         await WriteError(writer, 400, "Query parameter 'key' is required");
@@ -154,8 +153,8 @@ public class WebServer(int defaultPort = 8082)
                 if (string.Equals(path, "/shell", StringComparison.OrdinalIgnoreCase))
                 {
                     Dictionary<string, string> qs = ParseQuery(query);
-                    string q = qs.ContainsKey("q") ? qs["q"] : "";
-                    string token = qs.ContainsKey("token") ? qs["token"] : "";
+                    string q = qs.GetValueOrDefault("q", "");
+                    string token = qs.GetValueOrDefault("token", "");
                     if (string.IsNullOrWhiteSpace(q))
                     {
                         string page0 = HtmlPage.BuildShell(baseUrl, "", "", "", "", 0, 0, "");
@@ -163,8 +162,7 @@ public class WebServer(int defaultPort = 8082)
                         return;
                     }
                     string envToken = Environment.GetEnvironmentVariable("ADMINPANEL_TOKEN") ?? "";
-                    IPEndPoint? rep = client.Client.RemoteEndPoint as IPEndPoint;
-                    IPAddress? addr = rep != null ? rep.Address : null;
+                    IPAddress? addr = client.Client.RemoteEndPoint is IPEndPoint rep ? rep.Address : null;
                     bool isLoopback = addr != null && IPAddress.IsLoopback(addr);
                     if (!string.IsNullOrEmpty(envToken))
                     {

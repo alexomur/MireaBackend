@@ -1,0 +1,26 @@
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+COPY CgiApp/ CgiApp/
+RUN dotnet publish CgiApp/CgiApp.csproj -c Release -o /out
+RUN chmod +x /out/CgiApp
+
+FROM httpd:2.4
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      libaprutil1-dbd-pgsql wget ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY apache/modules-prac3.conf /usr/local/apache2/conf/modules-prac3.conf
+COPY apache/prac3.conf         /usr/local/apache2/conf/prac3.conf
+RUN printf '\n# Prac3 includes\nInclude conf/modules-prac3.conf\nInclude conf/prac3.conf\n' >> /usr/local/apache2/conf/httpd.conf
+
+COPY apache/custom-root/ /var/www/custom-root/
+COPY --from=build /out/CgiApp /usr/local/apache2/cgi-bin/app
+RUN chmod +x /usr/local/apache2/cgi-bin/app
+
+RUN mkdir -p /usr/local/apache2/cgi-bin/admin
+COPY --from=build /out/CgiApp /usr/local/apache2/cgi-bin/admin/app
+COPY apache/cgi-htaccess/admin/.htaccess /usr/local/apache2/cgi-bin/admin/.htaccess
+RUN chmod -R +x /usr/local/apache2/cgi-bin/admin
+
+EXPOSE 80

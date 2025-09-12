@@ -87,8 +87,8 @@ public class WebServer(string? wwwRoot = null)
         using (client)
         {
             NetworkStream stream = client.GetStream();
-            StreamReader reader = new StreamReader(stream, Encoding.UTF8, false, 8192, true);
-            StreamWriter writer = new StreamWriter(stream, new UTF8Encoding(false), 8192, true);
+            StreamReader reader = new(stream, Encoding.UTF8, false, 8192, true);
+            StreamWriter writer = new(stream, new UTF8Encoding(false), 8192, true);
             writer.NewLine = "\r\n";
             try
             {
@@ -102,7 +102,7 @@ public class WebServer(string? wwwRoot = null)
                 }
                 string method = first[0];
                 string rawTarget = first[1];
-                Dictionary<string, string> headers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                Dictionary<string, string> headers = new(StringComparer.OrdinalIgnoreCase);
                 while (true)
                 {
                     string line = await reader.ReadLineAsync() ?? "";
@@ -110,20 +110,20 @@ public class WebServer(string? wwwRoot = null)
                     int idx = line.IndexOf(':');
                     if (idx > 0)
                     {
-                        string name = line.Substring(0, idx).Trim();
-                        string value = line.Substring(idx + 1).Trim();
+                        string name = line[..idx].Trim();
+                        string value = line[(idx + 1)..].Trim();
                         headers[name] = value;
                     }
                 }
-                string host = headers.ContainsKey("Host") ? headers["Host"] : "localhost:" + _port.ToString(CultureInfo.InvariantCulture);
+                string host = headers.TryGetValue("Host", out string? header) ? header : "localhost:" + _port.ToString(CultureInfo.InvariantCulture);
                 string baseUrl = "http://" + host + "/";
                 string path;
                 string query;
                 int qpos = rawTarget.IndexOf('?');
                 if (qpos >= 0)
                 {
-                    path = rawTarget.Substring(0, qpos);
-                    query = rawTarget.Substring(qpos + 1);
+                    path = rawTarget[..qpos];
+                    query = rawTarget[(qpos + 1)..];
                 }
                 else
                 {

@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
+﻿using System.Globalization;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading.Tasks;
 using Drawer.Enums;
 using Utils;
 
@@ -20,13 +16,14 @@ public class WebServer(string? wwwRoot = null)
     {
         try
         {
-            if (!Directory.Exists(_wwwRoot)) Directory.CreateDirectory(_wwwRoot);
-            string urlFixed = url.EndsWith("/") ? url : url + "/";
+            if (!Directory.Exists(_wwwRoot)) 
+                Directory.CreateDirectory(_wwwRoot);
+            string urlFixed = url.EndsWith('/') ? url : url + '/';
             int port = 8080;
             string host = "0.0.0.0";
             try
             {
-                Uri u = new Uri(urlFixed);
+                Uri u = new(urlFixed);
                 if (u.Port > 0) port = u.Port;
                 host = u.Host;
             }
@@ -35,7 +32,7 @@ public class WebServer(string? wwwRoot = null)
             }
             _port = port;
             IPAddress bindAddress = ResolveBindAddress(host);
-            TcpListener listener = new TcpListener(bindAddress, port);
+            TcpListener listener = new(bindAddress, port);
             listener.Start();
             string logHost = ResolveLogHost(host, bindAddress);
             Log.Info("Drawer started at http://" + logHost + ":" + port.ToString(CultureInfo.InvariantCulture) + "/");
@@ -71,21 +68,31 @@ public class WebServer(string? wwwRoot = null)
 
     private static IPAddress ResolveBindAddress(string host)
     {
-        if (string.Equals(host, "localhost", StringComparison.OrdinalIgnoreCase)) return IPAddress.Loopback;
-        if (host == "127.0.0.1" || host == "::1") return IPAddress.Loopback;
-        if (host == "0.0.0.0" || host == "*" || host == "+") return IPAddress.Any;
-        if (IPAddress.TryParse(host, out IPAddress? ip)) return ip;
-        return IPAddress.Any;
+        if (string.Equals(host, "localhost", StringComparison.OrdinalIgnoreCase)) 
+            return IPAddress.Loopback;
+        return host switch
+        {
+            "127.0.0.1" or "::1" => IPAddress.Loopback,
+            "0.0.0.0" or "*" or "+" => IPAddress.Any,
+            _ => IPAddress.TryParse(host, out IPAddress? ip) ? ip : IPAddress.Any
+        };
     }
 
     private static string ResolveLogHost(string host, IPAddress bind)
     {
-        if (string.Equals(host, "localhost", StringComparison.OrdinalIgnoreCase)) return "localhost";
-        if (host == "127.0.0.1" || host == "::1") return "localhost";
-        if (host == "0.0.0.0" || host == "*" || host == "+") return "0.0.0.0";
-        if (IPAddress.TryParse(host, out IPAddress? ip)) return ip.ToString();
-        if (Equals(bind, IPAddress.Any)) return "0.0.0.0";
-        return bind.ToString();
+        if (string.Equals(host, "localhost", StringComparison.OrdinalIgnoreCase)) 
+            return "localhost";
+        switch (host)
+        {
+            case "127.0.0.1" or "::1":
+                return "localhost";
+            case "0.0.0.0" or "*" or "+":
+                return "0.0.0.0";
+        }
+
+        if (IPAddress.TryParse(host, out IPAddress? ip)) 
+            return ip.ToString();
+        return Equals(bind, IPAddress.Any) ? "0.0.0.0" : bind.ToString();
     }
 
     private async Task HandleClient(TcpClient client)
@@ -93,13 +100,14 @@ public class WebServer(string? wwwRoot = null)
         using (client)
         {
             NetworkStream stream = client.GetStream();
-            StreamReader reader = new StreamReader(stream, Encoding.UTF8, false, 8192, true);
-            StreamWriter writer = new StreamWriter(stream, new UTF8Encoding(false), 8192, true);
+            StreamReader reader = new(stream, Encoding.UTF8, false, 8192, true);
+            StreamWriter writer = new(stream, new UTF8Encoding(false), 8192, true);
             writer.NewLine = "\r\n";
             try
             {
                 string requestLine = await reader.ReadLineAsync() ?? "";
-                if (requestLine.Length == 0) return;
+                if (requestLine.Length == 0) 
+                    return;
                 string[] first = requestLine.Split(' ');
                 if (first.Length < 3)
                 {
@@ -108,28 +116,30 @@ public class WebServer(string? wwwRoot = null)
                 }
                 string method = first[0];
                 string rawTarget = first[1];
-                Dictionary<string, string> headers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                Dictionary<string, string> headers = new(StringComparer.OrdinalIgnoreCase);
                 while (true)
                 {
                     string line = await reader.ReadLineAsync() ?? "";
-                    if (line.Length == 0) break;
+                    if (line.Length == 0) 
+                        break;
+                    
                     int idx = line.IndexOf(':');
-                    if (idx > 0)
-                    {
-                        string name = line.Substring(0, idx).Trim();
-                        string value = line.Substring(idx + 1).Trim();
-                        headers[name] = value;
-                    }
+                    if (idx <= 0) 
+                        continue;
+                    
+                    string name = line[..idx].Trim();
+                    string value = line[(idx + 1)..].Trim();
+                    headers[name] = value;
                 }
-                string host = headers.ContainsKey("Host") ? headers["Host"] : "localhost:" + _port.ToString(CultureInfo.InvariantCulture);
+                string host = headers.TryGetValue("Host", out string? header) ? header : "localhost:" + _port.ToString(CultureInfo.InvariantCulture);
                 string baseUrl = "http://" + host + "/";
                 string path;
                 string query;
                 int qpos = rawTarget.IndexOf('?');
                 if (qpos >= 0)
                 {
-                    path = rawTarget.Substring(0, qpos);
-                    query = rawTarget.Substring(qpos + 1);
+                    path = rawTarget[..qpos];
+                    query = rawTarget[(qpos + 1)..];
                 }
                 else
                 {
@@ -239,20 +249,19 @@ public class WebServer(string? wwwRoot = null)
         Dictionary<string, string> dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         if (string.IsNullOrEmpty(query)) return dict;
         string[] pairs = query.Split('&', StringSplitOptions.RemoveEmptyEntries);
-        for (int i = 0; i < pairs.Length; i++)
+        foreach (string p in pairs)
         {
-            string p = pairs[i];
             int eq = p.IndexOf('=');
             if (eq >= 0)
             {
                 string k = WebUtility.UrlDecode(p.Substring(0, eq));
                 string v = WebUtility.UrlDecode(p.Substring(eq + 1));
-                if (!dict.ContainsKey(k)) dict[k] = v;
+                dict.TryAdd(k, v);
             }
             else
             {
                 string k = WebUtility.UrlDecode(p);
-                if (!dict.ContainsKey(k)) dict[k] = "";
+                dict.TryAdd(k, "");
             }
         }
         return dict;
@@ -279,7 +288,7 @@ public class WebServer(string? wwwRoot = null)
         await writer.WriteLineAsync("Server: Drawer-Tcp");
         await writer.WriteLineAsync();
         await writer.FlushAsync();
-        await writer.BaseStream.WriteAsync(body, 0, body.Length);
+        await writer.BaseStream.WriteAsync(body);
         await writer.BaseStream.FlushAsync();
     }
 

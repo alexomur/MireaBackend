@@ -1,0 +1,5 @@
+AuthType Basic
+AuthName "Admin Area"
+AuthBasicProvider dbd
+AuthDBDUserPWQuery "SELECT password FROM users WHERE username = %s"
+Require valid-user

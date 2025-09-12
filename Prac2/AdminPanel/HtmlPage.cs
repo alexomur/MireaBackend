@@ -19,7 +19,6 @@ public static class HtmlPage
         sb.Append(".btn{appearance:none;border:1px solid var(--border);background:#f8fafc;padding:8px 12px;border-radius:10px;text-decoration:none;color:inherit;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}\n");
         sb.Append("input{font:inherit;border:1px solid var(--border);border-radius:10px;padding:8px 10px}\nlabel{display:flex;gap:8px;align-items:center}\nh1{margin:0 0 10px 0}\nsmall{color:var(--muted)}\npre{white-space:pre-wrap}\n");
         sb.Append("</style>\n</head>\n<body>\n<h1>AdminPanel</h1>\n");
-        sb.Append("<p><small>Доступные команды: whoami, id, uname -a, uptime, df -h, free -m, ps aux, ls -la, env, pwd, hostname.</small></p>\n");
         sb.Append("<h2>Быстрый запуск</h2>\n<div class=\"grid\">\n");
         foreach (string k in keys.OrderBy(x => x))
         {
@@ -36,7 +35,7 @@ public static class HtmlPage
         sb.Append("</div>\n<h2>ls по пути</h2>\n<div class=\"card\">\n<form action=\"exec\" method=\"get\">\n");
         sb.Append("<input type=\"hidden\" name=\"key\" value=\"ls\">\n<label>Путь <input type=\"text\" name=\"path\" placeholder=\".\" value=\".\"></label>\n<button class=\"btn\" type=\"submit\">Выполнить</button>\n</form>\n");
         sb.Append("<p><small>Путь фильтруется по допустимым символам: A–Z a–z 0–9 _ - . / ~ и пробел.</small></p>\n</div>\n");
-        sb.Append("<h2>Псевдо-SSH</h2>\n<div class=\"card\">\n<form action=\"SSH\" method=\"get\">\n");
+        sb.Append("<h2>Псевдо-SSH</h2>\n<div class=\"card\">\n<form action=\"shell\" method=\"get\">\n");
         sb.Append("<label>Команда <input type=\"text\" name=\"q\" placeholder=\"ls .\"></label>\n");
         sb.Append("<label>Token <input type=\"text\" name=\"token\" placeholder=\"если задан ADMINPANEL_TOKEN\"></label>\n");
         sb.Append("<button class=\"btn\" type=\"submit\">Выполнить</button>\n</form>\n");

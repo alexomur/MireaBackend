@@ -1,0 +1,49 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: coffee
+    ports:
+      - "5432:5432"
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d coffee"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  apache:
+    build:
+      context: .
+      dockerfile: Dockerfile.apache
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_CONNECTION_STRING: "Host=db;Username=app;Password=secret;Database=coffee"
+      DOTNET_SYSTEM_GLOBALIZATION_INVARIANT: "1"
+    expose:
+      - "80"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost/ || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  nginx:
+    image: nginx:1.27-alpine
+    depends_on:
+      apache:
+        condition: service_healthy
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./apache/custom-root:/usr/share/nginx/custom-static:ro
+
+volumes:
+  dbdata:
