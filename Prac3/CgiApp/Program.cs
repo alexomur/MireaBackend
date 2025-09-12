@@ -168,7 +168,6 @@ try
                 sb.Append(ts.ToString("yyyy-MM-dd HH:mm"));
                 sb.Append("</td></tr>");
             }
-            sb.ToString().Where()
             sb.Append("</table>");
             WriteHeader();
             Console.Write(Html("Админ: последние заказы", sb.ToString()));
