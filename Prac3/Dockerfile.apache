@@ -11,8 +11,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rm -rf /var/lib/apt/lists/*
 
 COPY apache/modules-prac3.conf /usr/local/apache2/conf/modules-prac3.conf
-COPY apache/prac3.conf         /usr/local/apache2/conf/prac3.conf
-RUN printf '\nInclude conf/modules-prac3.conf\nInclude conf/prac3.conf\n' >> /usr/local/apache2/conf/httpd.conf
+COPY apache/prac3.conf /usr/local/apache2/conf/prac3.conf
+RUN echo '\nInclude conf/modules-prac3.conf\nInclude conf/prac3.conf\n' >> /usr/local/apache2/conf/httpd.conf
 
 COPY apache/custom-root/ /var/www/custom-root/
 COPY --from=build /out/CgiApp /usr/local/apache2/cgi-bin/app

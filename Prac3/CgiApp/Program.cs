@@ -26,8 +26,7 @@ static string Html(string title, string body)
 
 static string Env(string key)
 {
-    string v = Environment.GetEnvironmentVariable(key);
-    return v == null ? "" : v;
+    return Environment.GetEnvironmentVariable(key) ?? "";
 }
 
 static async Task<NpgsqlConnection> OpenDbAsync()
