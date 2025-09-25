@@ -91,7 +91,7 @@ try
                 sb.Append(name);
                 sb.Append("</td><td>");
                 sb.Append(price.ToString("F2"));
-                sb.Append(" ₽</td></tr>");
+                sb.Append(" $</td></tr>");
             }
             sb.Append("</table>");
             sb.Append("<h2>Сделать заказ</h2><form method=\"post\" action=\"/order\">");
